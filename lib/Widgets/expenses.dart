@@ -14,24 +14,25 @@ class Expenses extends StatefulWidget {
 class _ExpensesState extends State<Expenses> {
  final List<Expense> _registeredExpenses = [
    Expense(
-     title: 'Flutter Course',
-     amount: 499,
-     date: DateTime.now(),
-     category: Category.Work
+       title: 'Flutter Course',
+       amount: 499,
+       date: DateTime.now(),
+       category: Category.Work
    ),
    Expense(
-     title: 'Cinema',
-     amount: 190,
-     date: DateTime.now(),
-     category: Category.Lesure
+       title: 'Cinema',
+       amount: 190,
+       date: DateTime.now(),
+       category: Category.Lesure
    )
+
  ];
 
  void _openAddExpenseOverlay(){
    showModalBottomSheet(
      isScrollControlled: true,
        context: context, builder: (context){
-     return  NewExpense(onAddExpense: addExpense,);
+     return NewExpense(onAddExpense: addExpense,);
    });
  }
 
@@ -41,13 +42,34 @@ class _ExpensesState extends State<Expenses> {
   });
  }
  void removeExpense(Expense expense){
+   final expenseIndex = _registeredExpenses.indexOf(expense);
    setState(() {
      _registeredExpenses.remove(expense);
    });
+   ScaffoldMessenger.of(context).clearSnackBars();
+   ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+         duration: const Duration(seconds: 3),
+         content: const Text('Expense Deleted.'),
+         action: SnackBarAction(label: 'Undo', onPressed: (){
+           setState(() {
+             _registeredExpenses.insert(expenseIndex, expense);
+           });
+         }),
+   )
+   );
  }
 
   @override
   Widget build(BuildContext context) {
+
+   Widget mainContent = const Center(child: Text('No expenses found. Start adding some!'));
+
+   if(_registeredExpenses.isNotEmpty){
+     mainContent = ExpensesList(
+         removeExpense: removeExpense,
+         expenses: _registeredExpenses);
+   }
     return SafeArea(
         child: Scaffold(
           appBar: AppBar(
@@ -61,9 +83,7 @@ class _ExpensesState extends State<Expenses> {
           body: Column(
             children: [
              const Text('the Chart'),
-              Expanded(child: ExpensesList(
-                  removeExpense: removeExpense,
-                  expenses: _registeredExpenses))
+              Expanded(child: mainContent)
             ],
           ),
 
